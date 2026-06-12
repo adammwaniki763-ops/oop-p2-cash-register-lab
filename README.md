@@ -1,123 +1,192 @@
-# Object Oriented Programming (OOP) Part 2 - Cash Register Lab
+# Cash Register Model
 
-Now that we’ve discussed more about object oriented design philosophies and techniques like decorators we will be looking at building more complex objects. In this case we will be building a cash register object to simulate different functions of a cash register for an e-commerce site. 
+This project implements a `CashRegister` class in Python, simulating basic cash register functionalities such as adding items, applying discounts, and voiding transactions. The model is designed to be extensible and easy to understand.
 
-## Tools & Resources
-* [GitHub Repo](https://github.com/learn-co-curriculum/oop-p2-cash-register-lab)
-* [Python Classes](https://docs.python.org/3/tutorial/classes.html)
+## Features
 
-## Instructions
+- **Add Items**: Incorporate items with their price and quantity into the register, updating the total and transaction history.
+- **Apply Discounts**: Apply a percentage-based discount to the total price, with validation to ensure the discount is within a valid range (0-100%).
+- **Void Transactions**: Revert the last transaction, adjusting the total and item list accordingly.
+- **Transaction History**: Maintain a record of all transactions for auditing and operational purposes.
 
-### Set Up
+## Installation
 
-Before we begin coding, let's complete the initial setup for this lesson: 
-* Fork and Clone: For this lesson, you will need the following GitHub Repo:
-  * Go to the provided GitHub repository link.
-  * Fork the repository to your GitHub account.
-  * Clone the forked repository to your local machine.
-* Open and Run File
-  * Open the project in VSCode.
-  * Run npm install to install all necessary dependencies.
+No special installation is required beyond a standard Python 3 environment.
 
-### Task 1: Define the Problem
+## Usage
 
-Build a model for a cash register
-* Build a cash register object
-* Add items
-* Apply discounts
-* Void previous transactions
+To use the `CashRegister` class, simply import it into your Python script and instantiate an object. Below is an example demonstrating its core functionalities:
 
-### Task 2: Determine the Design
+```python
+from cash_register import CashRegister
 
-Cash Register
-* Attributes
-  * discount
-  * total
-  * items
-  * previous_transactions
-* Methods
-  * add_item(item, price, quantity)
-  * apply_discount()
-  * void_last_transaction()
+# Initialize the cash register with an optional discount
+register = CashRegister(discount=10) # 10% discount
+print(f"Initial discount set to: {register.discount}%")
 
-### Task 3: Develop, Test, and Refine the Code
+# Add items to the register
+register.add_item("Laptop", 1200.00, 1)
+register.add_item("Mouse", 25.00, 2)
+print(f"Current items: {register.items}")
+print(f"Current total: ${register.total:.2f}")
 
-#### Step 1: Git Feature Branch
+# Void the last transaction (Mouse)
+register.void_last_transaction()
+print(f"Total after void: ${register.total:.2f}")
+print(f"Items after void: {register.items}")
 
-* Create a feature branch for your work using git.
+# Add another item
+register.add_item("Keyboard", 75.00, 1)
+print(f"Current items: {register.items}")
+print(f"Current total: ${register.total:.2f}")
 
-#### Step 2: Create a CashRegister class
+# Apply the discount
+register.apply_discount()
+print(f"Total after discount: ${register.total:.2f}")
+print(f"Items after discount: {register.items}")
 
-* ```__init__```:
-  * discount
-  * Allow for user to input
-  * If no input initialize as 0
-  * Note that discount is a percentage off of the total cash register price (e.g. a discount of 20 means the customer receives 20% off of their total price)
-* ```total```
-  * Initialize as 0
-* ```items```
-  * Initialize as empty array
-* ```previous_transactions```
-  * Initialize as empty array
+# Attempt to set an invalid discount
+register.discount = 120 # This will print "Not valid discount"
+print(f"Discount after invalid attempt: {register.discount}%")
+```
 
-#### Step 3: Properties
+## Code
 
-* Discount:
-  * Ensure discount is an integer
-  * Ensure that discount is between 0-100 inclusive
-  * If not print “Not valid discount”
+### `cash_register.py`
 
-#### Step 4: Methods
+```python
+class CashRegister:
+    """
+    A class to represent a cash register system.
+    
+    Attributes:
+        discount (int): Percentage discount to apply (0-100).
+        total (float): The current total price of items in the register.
+        items (list): A list of item names added to the register.
+        previous_transactions (list): A history of transaction objects.
+    """
 
-* add_item(item, price, quantity)
-  * Add price to total
-  * Add item to the items array
-  * Add an object to the previous transactions with the item, price and quantity.
-* apply_discount()
-  * Apply discount as percentage off from total
-  * Remove the last item of previous_transaction from array
-    * Ensure price reflects correctly
-    * Ensure items reflects correctly
-  * If no transactions in array print “There is no discount to apply.”
-* void_last_transaction()
-  * Remove the last item of previous_transaction from the array.
-    * Ensure the price reflects correctly.
-    * Ensure items reflect correctly.
-  * If no transactions are in the array, print “There is no transaction to void.”
+    def __init__(self, discount=0):
+        # Initialize _discount to 0 and then use the setter for validation
+        self._discount = 0 
+        self.discount = discount  # Use setter for validation
+        self.total = 0.0
+        self.items = []
+        self.previous_transactions = []
 
-#### Step 5: Push feature branch and open a PR on GitHub
+    @property
+    def discount(self):
+        """The discount percentage (0-100)."""
+        return self._discount
 
-* Save, commit, and push your code to GitHub.
-* Open a PR on the main branch of your own repo (be sure not to open a PR on the learn-co-curriculum repo).
+    @discount.setter
+    def discount(self, value):
+        """Sets the discount with validation, ensuring it's an integer between 0 and 100."""
+        if isinstance(value, int) and 0 <= value <= 100:
+            self._discount = value
+        else:
+            print("Not valid discount")
 
-#### Step 6: Merge to main
+    def add_item(self, item, price, quantity):
+        """
+        Adds an item to the cash register, updating the total and transaction history.
+        
+        Args:
+            item (str): Name of the item.
+            price (float): Price per unit.
+            quantity (int): Number of units.
+        """
+        item_total = price * quantity
+        self.total += item_total
+        self.items.append(item)
+        
+        # Store transaction details including item, price, quantity, and total price for the item
+        transaction = {
+            "item": item,
+            "price": price,
+            "quantity": quantity,
+            "total_price": item_total
+        }
+        self.previous_transactions.append(transaction)
 
-* Review the PR and merge your finished code into the main branch.
+    def apply_discount(self):
+        """
+        Applies the stored discount percentage to the current total.
+        
+        This method also removes the last transaction from `previous_transactions`
+        and the corresponding item from `items` as per requirements.
+        If no transactions exist, it prints a message.
+        """
+        if not self.previous_transactions:
+            print("There is no discount to apply.")
+            return
 
-### Task 4: Document and Maintain
+        # Calculate the discount amount based on the current total
+        discount_amount = self.total * (self.discount / 100)
+        self.total -= discount_amount
 
-Best Practice documentation steps:
+        # Remove the last transaction record from the history
+        last_transaction = self.previous_transactions.pop()
+        
+        # Remove the item associated with the last transaction from the items list
+        if last_transaction["item"] in self.items:
+            self.items.remove(last_transaction["item"])
+            
+        # The total is already updated by subtracting the discount_amount.
 
-* Add comments to code to explain purpose and logic
-  * Clarify intent / functionality of code to other developers
-  * Add screenshot of completed work included in Markdown in README.
-  * Update README text to reflect the functionality of the application following https://makeareadme.com. 
-* Delete any stale branches on GitHub
-* Remove unnecessary/commented out code
-* If needed, update git ignore to remove sensitive data
+    def void_last_transaction(self):
+        """
+        Voids the most recent transaction, reversing its financial and item-list impact.
+        
+        If no transactions are present, it prints a message.
+        """
+        if not self.previous_transactions:
+            print("No transactions to void.")
+            return
 
-## Save your work and push to GitHub
+        # Retrieve and remove the last transaction
+        last_transaction = self.previous_transactions.pop()
+        
+        # Subtract the total price of the voided item from the overall total
+        self.total -= last_transaction["total_price"]
+        
+        # Remove the item from the current items list
+        if last_transaction["item"] in self.items:
+            self.items.remove(last_transaction["item"])
+        
+        print(f"Voided last transaction: {last_transaction["item"]}")
+```
 
-Before you submit your solution, you need to save your progress with git.
-1. Add your changes to the staging area by executing git add .
-2. Create a commit by executing git commit -m "Your commit message"
-3. Push your commits to GitHub by executing git push origin main or git push origin master , depending on the name of your branch (use git branch to check on which branch you are).
+## Test Output
 
-## Submission and Grading Criteria
+Below is a screenshot of the test script execution, demonstrating the functionality of the `CashRegister` class:
 
-1. Use the rubric in Canvas as a guide for how this lab is graded.
-2. Your submission will be automatically scored in CodeGrade, using the most recent commit. Remember to make sure you have pushed your commit to GitHub before submitting your assignment. 
-3. You can review your submission in CodeGrade and see your final score in your Canvas gradebook.
-4. When you are ready to submit, click the ***Load Lab: Object Oriented Programming (OOP)- Part 2- Cash Register*** button in Canvas to launch CodeGrade.
-  * Click on + Create Submission. Connect your repository for this lab.
-  * For additional information on submitting assignments in CodeGrade: [Getting Started in Canvas](https://help.codegrade.com/for-students/getting-started/getting-started-in-canvas).
+```
+--- Testing CashRegister ---
+Initialized with 20% discount. Current discount: 20%
+
+Adding items...
+Total: $9.00
+Items: ['Apple', 'Milk']
+
+Testing invalid discount (150)...
+Not valid discount
+
+Voiding last transaction (Milk)...
+Voided last transaction: Milk
+Total after void: $6.00
+Items after void: ['Apple']
+
+Added Bread. Total: $11.00
+
+Applying 20% discount...
+Total after discount: $8.80
+Items after apply_discount (should have removed Bread): ['Apple']
+
+Clearing transactions and testing empty discount apply...
+There is no discount to apply.
+```
+
+## Author
+
+Manus AI
